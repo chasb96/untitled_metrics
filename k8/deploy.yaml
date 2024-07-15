@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: metrics
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: metrics
+    spec:
+      containers:
+      - name: metrics
+        image: public.ecr.aws/l4v6k6q7/6ec0ee89e06a67f2096229664d07b021_metrics:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: METRICS_DATABASE_URL
+          valueFrom: 
+            secretKeyRef:
+              name: metrics-mongo-credentials
+              key: connection-string
+        - name: METRICS_DATABASE_NAME
+          value: metrics

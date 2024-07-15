@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-mongo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: metrics-mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: metrics-mongo
+    spec:
+      containers:
+      - name: metrics-mongo
+        image: mongo:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: metrics-mongo-credentials
+              key: username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: metrics-mongo-credentials
+              key: password
+        volumeMounts:
+        - name: metrics-mongo
+          mountPath: /data/db
+      volumes:
+        - name: metrics-mongo
+          persistentVolumeClaim:
+            claimName: metrics-mongo-volume-claim
